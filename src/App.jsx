@@ -6,6 +6,7 @@ import UserTable from "./components/UserTable/UserTable";
 import Pagination from "./components/Pagination/Pagination";
 import FilterPopup from "./components/FilterPopup/FilterPopup";
 import UserForm from "./components/UserForm/UserForm";
+import ConfirmDelete from "./components/ConfirmDelete/ConfirmDelete";
 import { useUsers } from "./hooks/useUsers";
 import {
   sortUsers,
@@ -13,11 +14,12 @@ import {
   getPaginationInfo,
   applyAdvancedFilters,
 } from "./utils/helpers";
-import { createUser, updateUser } from "./api/userService";
+import { createUser, updateUser, deleteUser } from "./api/userService";
 
 function App() {
-  const { users, loading, error, addUser, updateUserLocal } = useUsers();
-  
+  const { users, loading, error, addUser, updateUserLocal, deleteUserLocal } =
+    useUsers();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(null);
@@ -38,6 +40,10 @@ function App() {
   const [userFormMode, setUserFormMode] = useState("add");
   const [selectedUser, setSelectedUser] = useState(null);
   const [addUserBtnRect, setAddUserBtnRect] = useState(null);
+
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [selectedUserForDelete, setSelectedUserForDelete] = useState(null);
+  const [deleteBtnRect, setDeleteBtnRect] = useState(null);
 
   const handleOpenFilter = () => {
     if (filterBtnRef.current) {
@@ -98,7 +104,9 @@ function App() {
       if (userFormMode === "add") {
         document.querySelector(".app-header__add-btn")?.focus();
       } else if (userFormMode === "edit" && selectedUser) {
-        document.querySelector(`.user-row__button[data-userid="${selectedUser.id}"]`)?.focus();
+        document
+          .querySelector(`.user-row__button[data-userid="${selectedUser.id}"]`)
+          ?.focus();
       }
     }, 10);
   };
@@ -143,6 +151,31 @@ function App() {
     }
 
     handleCloseUserForm();
+  };
+
+  const handleOpenDeleteConfirm = (user, rect) => {
+    setDeleteBtnRect(rect);
+    setSelectedUserForDelete(user);
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const handleCloseDeleteConfirm = () => {
+    setIsConfirmDeleteOpen(false);
+    setTimeout(() => {
+      if (selectedUserForDelete) {
+        document
+          .querySelector(
+            `.user-row__button[data-delete-userid="${selectedUserForDelete.id}"]`,
+          )
+          ?.focus();
+      }
+    }, 10);
+  };
+
+  const handleDeleteConfirm = async (user) => {
+    await deleteUser(user.id);
+    deleteUserLocal(user.id);
+    setIsConfirmDeleteOpen(false);
   };
 
   const searchedUsers = useMemo(() => {
@@ -222,6 +255,7 @@ function App() {
         sortDirection={sortDirection}
         onSort={handleSort}
         onEdit={handleOpenEditUser}
+        onDelete={handleOpenDeleteConfirm}
       />
       {sortedUsers.length > 0 && (
         <Pagination
@@ -244,14 +278,23 @@ function App() {
         buttonRect={filterButtonRect}
       />
 
-      <UserForm 
-        key={selectedUser ? selectedUser.id : 'add-new'}
+      <UserForm
+        key={selectedUser ? selectedUser.id : "add-new"}
         isOpen={isUserFormOpen}
         onClose={handleCloseUserForm}
         onSubmit={handleUserFormSubmit}
         mode={userFormMode}
         initialData={selectedUser}
         buttonRect={addUserBtnRect}
+      />
+
+      <ConfirmDelete
+        key={selectedUserForDelete ? selectedUserForDelete.id : "delete-new"}
+        isOpen={isConfirmDeleteOpen}
+        onClose={handleCloseDeleteConfirm}
+        onConfirm={handleDeleteConfirm}
+        user={selectedUserForDelete}
+        buttonRect={deleteBtnRect}
       />
     </div>
   );

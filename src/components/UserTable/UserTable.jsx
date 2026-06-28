@@ -1,7 +1,14 @@
 import UserRow from "../UserRow/UserRow";
 import "./UserTable.css";
 
-function UserTable({ users, sortField, sortDirection, onSort, onEdit }) {
+function UserTable({
+  users,
+  sortField,
+  sortDirection,
+  onSort,
+  onEdit,
+  onDelete,
+}) {
   if (!users.length) {
     return (
       <div className="user-table__empty-state" role="status" aria-live="polite">
@@ -82,7 +89,12 @@ function UserTable({ users, sortField, sortDirection, onSort, onEdit }) {
           </thead>
           <tbody>
             {users.map((user) => (
-              <UserRow key={user.id} user={user} onEdit={onEdit} />
+              <UserRow
+                key={user.id}
+                user={user}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
           </tbody>
         </table>

@@ -81,10 +81,12 @@ export function useUsers() {
 
   const updateUserLocal = (updatedUser) => {
     setUsers((prev) =>
-      prev.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+      prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
     );
   };
-
+  const deleteUserLocal = (deletedUserId) => {
+    setUsers((prev) => prev.filter((user) => user.id !== deletedUserId));
+  };
   return {
     users,
     loading,
@@ -92,5 +94,6 @@ export function useUsers() {
     refetchUsers,
     addUser,
     updateUserLocal,
+    deleteUserLocal,
   };
 }

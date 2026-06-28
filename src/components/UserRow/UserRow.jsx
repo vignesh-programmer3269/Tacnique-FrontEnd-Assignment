@@ -1,8 +1,9 @@
 import { useRef } from "react";
 import "./UserRow.css";
 
-function UserRow({ user, onEdit }) {
+function UserRow({ user, onEdit, onDelete }) {
   const editBtnRef = useRef(null);
+  const deleteBtnRef = useRef(null);
 
   return (
     <tr className="user-row">
@@ -14,17 +15,31 @@ function UserRow({ user, onEdit }) {
       </td>
       <td className="user-row__cell">{user.department}</td>
       <td className="user-row__cell">
-        <div className="user-row__actions" aria-label={`Actions for user ${user.id}`}>
-          <button 
+        <div
+          className="user-row__actions"
+          aria-label={`Actions for user ${user.id}`}
+        >
+          <button
             ref={editBtnRef}
-            className="user-row__button" 
-            type="button" 
+            className="user-row__button"
+            type="button"
             data-userid={user.id}
-            onClick={() => onEdit?.(user, editBtnRef.current?.getBoundingClientRect())}
+            onClick={() =>
+              onEdit?.(user, editBtnRef.current?.getBoundingClientRect())
+            }
           >
             Edit
           </button>
-          <button className="user-row__button" type="button" disabled>
+
+          <button
+            ref={deleteBtnRef}
+            className="user-row__button"
+            type="button"
+            data-delete-userid={user.id}
+            onClick={() =>
+              onDelete?.(user, deleteBtnRef.current?.getBoundingClientRect())
+            }
+          >
             Delete
           </button>
         </div>

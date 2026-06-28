@@ -1,0 +1,152 @@
+.confirm-delete-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(17, 24, 39, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+@keyframes confirmOverlayFadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes confirmOverlayFadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+.confirm-delete-overlay--open { animation: confirmOverlayFadeIn 0.3s ease forwards; }
+.confirm-delete-overlay--closed { animation: confirmOverlayFadeOut 0.3s ease forwards; }
+
+.confirm-delete-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 90%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+@keyframes confirmModalExpand {
+  0% { transform: translate(calc(var(--origin-x) - 50%), calc(var(--origin-y) - 50%)) scale(0.3); opacity: 0; }
+  100% { transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1); opacity: 1; }
+}
+
+@keyframes confirmModalShrink {
+  0% { transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1); opacity: 1; }
+  100% { transform: translate(calc(var(--origin-x) - 50%), calc(var(--origin-y) - 50%)) scale(0.3); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-delete-modal--open { animation: confirmOverlayFadeIn 0.3s ease forwards !important; transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1) !important; }
+  .confirm-delete-modal--closed { animation: confirmOverlayFadeOut 0.3s ease forwards !important; transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1) !important; }
+}
+
+.confirm-delete-modal--open { animation: confirmModalExpand 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.confirm-delete-modal--closed { animation: confirmModalShrink 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+.confirm-delete__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.confirm-delete__title { font-size: 1.25rem; font-weight: 600; color: #dc2626; }
+
+.confirm-delete__close-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.confirm-delete__close-btn:hover:not(:disabled) { background-color: #fef2f2; color: #dc2626; }
+.confirm-delete__close-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.confirm-delete__body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.confirm-delete__error {
+  padding: 0.75rem 1rem;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.confirm-delete__message {
+  font-size: 1rem;
+  color: #374151;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.confirm-delete__warning {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.confirm-delete__footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.confirm-delete__btn {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-delete__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirm-delete__btn--cancel {
+  background-color: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.confirm-delete__btn--cancel:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.confirm-delete__btn--delete {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: 1px solid transparent;
+}
+
+.confirm-delete__btn--delete:hover:not(:disabled) {
+  background-color: #b91c1c;
+}

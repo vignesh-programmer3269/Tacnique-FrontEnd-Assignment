@@ -7,7 +7,7 @@ function UserRow({ user, onEdit, onDelete }) {
 
   return (
     <tr className="user-row">
-      <td className="user-row__cell">{user.id}</td>
+      <th scope="row" className="user-row__cell">{user.id}</th>
       <td className="user-row__cell">{user.firstName}</td>
       <td className="user-row__cell">{user.lastName}</td>
       <td className="user-row__cell">

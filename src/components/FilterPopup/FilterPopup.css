@@ -13,24 +13,6 @@
   -webkit-backdrop-filter: blur(4px);
 }
 
-@keyframes overlayFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes overlayFadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
 .filter-popup-overlay--open {
   animation: overlayFadeIn 0.3s ease forwards;
 }
@@ -54,28 +36,6 @@
   overflow: hidden;
   transform-origin: center;
   will-change: transform, opacity;
-}
-
-@keyframes modalExpand {
-  0% {
-    transform: translate(calc(var(--origin-x) - 50%), calc(var(--origin-y) - 50%)) scale(0.3);
-    opacity: 0;
-  }
-  100% {
-    transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes modalShrink {
-  0% {
-    transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(calc(var(--origin-x) - 50%), calc(var(--origin-y) - 50%)) scale(0.3);
-    opacity: 0;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

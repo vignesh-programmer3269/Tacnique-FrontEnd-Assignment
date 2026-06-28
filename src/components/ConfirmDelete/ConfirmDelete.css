@@ -13,11 +13,8 @@
   -webkit-backdrop-filter: blur(4px);
 }
 
-@keyframes confirmOverlayFadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
-@keyframes confirmOverlayFadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
-
-.confirm-delete-overlay--open { animation: confirmOverlayFadeIn 0.3s ease forwards; }
-.confirm-delete-overlay--closed { animation: confirmOverlayFadeOut 0.3s ease forwards; }
+.confirm-delete-overlay--open { animation: overlayFadeIn 0.3s ease forwards; }
+.confirm-delete-overlay--closed { animation: overlayFadeOut 0.3s ease forwards; }
 
 .confirm-delete-modal {
   position: fixed;
@@ -36,23 +33,13 @@
   will-change: transform, opacity;
 }
 
-@keyframes confirmModalExpand {
-  0% { transform: translate(calc(var(--origin-x) - 50%), calc(var(--origin-y) - 50%)) scale(0.3); opacity: 0; }
-  100% { transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1); opacity: 1; }
-}
-
-@keyframes confirmModalShrink {
-  0% { transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1); opacity: 1; }
-  100% { transform: translate(calc(var(--origin-x) - 50%), calc(var(--origin-y) - 50%)) scale(0.3); opacity: 0; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .confirm-delete-modal--open { animation: confirmOverlayFadeIn 0.3s ease forwards !important; transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1) !important; }
-  .confirm-delete-modal--closed { animation: confirmOverlayFadeOut 0.3s ease forwards !important; transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1) !important; }
+  .confirm-delete-modal--open { animation: overlayFadeIn 0.3s ease forwards !important; transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1) !important; }
+  .confirm-delete-modal--closed { animation: overlayFadeOut 0.3s ease forwards !important; transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(1) !important; }
 }
 
-.confirm-delete-modal--open { animation: confirmModalExpand 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.confirm-delete-modal--closed { animation: confirmModalShrink 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.confirm-delete-modal--open { animation: modalExpand 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.confirm-delete-modal--closed { animation: modalShrink 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 .confirm-delete__header {
   display: flex;

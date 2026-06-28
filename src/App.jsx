@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import "./App.css";
 import Header from "./components/Header/Header";
 import SearchBar from "./components/SearchBar/SearchBar";
@@ -9,12 +9,8 @@ import UserForm from "./components/UserForm/UserForm";
 import ConfirmDelete from "./components/ConfirmDelete/ConfirmDelete";
 import ErrorPopup from "./components/ErrorPopup/ErrorPopup";
 import { useUsers } from "./hooks/useUsers";
-import {
-  sortUsers,
-  paginateUsers,
-  getPaginationInfo,
-  applyAdvancedFilters,
-} from "./utils/helpers";
+import { useTableState } from "./hooks/useTableState";
+import { useModalState } from "./hooks/useModalState";
 import { createUser, updateUser, deleteUser } from "./api/userService";
 
 function App() {
@@ -27,30 +23,31 @@ function App() {
     deleteUserLocal,
   } = useUsers();
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const {
+    searchQuery,
+    setSearchQuery,
+    sortField,
+    sortDirection,
+    pageSize,
+    filters,
+    paginatedUsers,
+    paginationInfo: { totalPages, safeCurrentPage, startIndex, endIndex },
+    handleApplyFilters,
+    handleResetFilters,
+    handleSort,
+    handlePageSizeChange,
+    setCurrentPage,
+  } = useTableState(users);
 
-  const [filters, setFilters] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    department: "",
-  });
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filterButtonRect, setFilterButtonRect] = useState(null);
+  const filterModal = useModalState();
   const filterBtnRef = useRef(null);
 
-  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
+  const userFormModal = useModalState();
   const [userFormMode, setUserFormMode] = useState("add");
   const [selectedUser, setSelectedUser] = useState(null);
-  const [addUserBtnRect, setAddUserBtnRect] = useState(null);
 
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const confirmDeleteModal = useModalState();
   const [selectedUserForDelete, setSelectedUserForDelete] = useState(null);
-  const [deleteBtnRect, setDeleteBtnRect] = useState(null);
 
   const [mutationError, setMutationError] = useState({
     message: "",
@@ -58,69 +55,36 @@ function App() {
   });
 
   const handleOpenFilter = () => {
-    if (filterBtnRef.current) {
-      setFilterButtonRect(filterBtnRef.current.getBoundingClientRect());
-    }
-    setIsFilterOpen(true);
+    filterModal.handleOpen(filterBtnRef.current?.getBoundingClientRect());
   };
 
   const handleCloseFilter = () => {
-    setIsFilterOpen(false);
-    if (filterBtnRef.current) {
-      filterBtnRef.current.focus();
-    }
+    filterModal.handleClose(".app-dashboard__filter-btn");
   };
 
-  const handleApplyFilters = (newFilters) => {
-    setFilters(newFilters);
-    setCurrentPage(1);
+  const handleApplyFiltersApp = (newFilters) => {
+    handleApplyFilters(newFilters);
     handleCloseFilter();
   };
 
-  const handleResetFilters = (emptyFilters) => {
-    setFilters(emptyFilters);
-    setCurrentPage(1);
-  };
-
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
-  const handlePageSizeChange = (newSize) => {
-    setPageSize(newSize);
-    setCurrentPage(1);
-  };
-
   const handleOpenAddUser = (rect) => {
-    setAddUserBtnRect(rect);
     setUserFormMode("add");
     setSelectedUser(null);
-    setIsUserFormOpen(true);
+    userFormModal.handleOpen(rect);
   };
 
   const handleOpenEditUser = (user, rect) => {
-    setAddUserBtnRect(rect);
     setUserFormMode("edit");
     setSelectedUser(user);
-    setIsUserFormOpen(true);
+    userFormModal.handleOpen(rect);
   };
 
   const handleCloseUserForm = () => {
-    setIsUserFormOpen(false);
-    setTimeout(() => {
-      if (userFormMode === "add") {
-        document.querySelector(".app-header__add-btn")?.focus();
-      } else if (userFormMode === "edit" && selectedUser) {
-        document
-          .querySelector(`.user-row__button[data-userid="${selectedUser.id}"]`)
-          ?.focus();
-      }
-    }, 10);
+    const focusSelector =
+      userFormMode === "add"
+        ? ".app-header__add-btn"
+        : `.user-row__button[data-userid="${selectedUser?.id}"]`;
+    userFormModal.handleClose(focusSelector);
   };
 
   const handleUserFormSubmit = async (formData) => {
@@ -172,29 +136,21 @@ function App() {
   };
 
   const handleOpenDeleteConfirm = (user, rect) => {
-    setDeleteBtnRect(rect);
     setSelectedUserForDelete(user);
-    setIsConfirmDeleteOpen(true);
+    confirmDeleteModal.handleOpen(rect);
   };
 
   const handleCloseDeleteConfirm = () => {
-    setIsConfirmDeleteOpen(false);
-    setTimeout(() => {
-      if (selectedUserForDelete) {
-        document
-          .querySelector(
-            `.user-row__button[data-delete-userid="${selectedUserForDelete.id}"]`,
-          )
-          ?.focus();
-      }
-    }, 10);
+    confirmDeleteModal.handleClose(
+      `.user-row__button[data-delete-userid="${selectedUserForDelete?.id}"]`
+    );
   };
 
   const handleDeleteConfirm = async (user) => {
     try {
       await deleteUser(user.id);
       deleteUserLocal(user.id);
-      setIsConfirmDeleteOpen(false);
+      confirmDeleteModal.handleClose();
     } catch (err) {
       setMutationError({
         message: err.message || "Failed to delete user. Please try again.",
@@ -202,45 +158,6 @@ function App() {
       });
     }
   };
-
-  const searchedUsers = useMemo(() => {
-    if (!searchQuery.trim()) return users;
-
-    const lowerQuery = searchQuery.trim().toLowerCase();
-
-    return users.filter((user) => {
-      const matchFirst = user.firstName.toLowerCase().includes(lowerQuery);
-      const matchLast = user.lastName.toLowerCase().includes(lowerQuery);
-      const matchEmail = user.email.toLowerCase().includes(lowerQuery);
-      return matchFirst || matchLast || matchEmail;
-    });
-  }, [users, searchQuery]);
-
-  const advancedFilteredUsers = useMemo(() => {
-    return applyAdvancedFilters(searchedUsers, filters);
-  }, [searchedUsers, filters]);
-
-  const sortedUsers = useMemo(() => {
-    return sortUsers(advancedFilteredUsers, sortField, sortDirection);
-  }, [advancedFilteredUsers, sortField, sortDirection]);
-
-  useEffect(() => {
-    if (sortedUsers.length === 0) {
-      setCurrentPage(1);
-    } else {
-      const totalPages = Math.ceil(sortedUsers.length / pageSize);
-      if (currentPage > totalPages) {
-        setCurrentPage(totalPages);
-      }
-    }
-  }, [sortedUsers.length, pageSize, currentPage]);
-
-  const { totalPages, safeCurrentPage, startIndex, endIndex } =
-    getPaginationInfo(sortedUsers.length, currentPage, pageSize);
-
-  const paginatedUsers = useMemo(() => {
-    return paginateUsers(sortedUsers, safeCurrentPage, pageSize);
-  }, [sortedUsers, safeCurrentPage, pageSize]);
 
   let content = (
     <div className="app-dashboard">
@@ -251,7 +168,7 @@ function App() {
           className="app-dashboard__filter-btn"
           onClick={handleOpenFilter}
           aria-haspopup="dialog"
-          aria-expanded={isFilterOpen}
+          aria-expanded={filterModal.isOpen}
         >
           <span className="app-dashboard__filter-icon">
             <svg
@@ -264,9 +181,9 @@ function App() {
               <path
                 d="M3 4.6C3 4.03995 3 3.75992 3.10899 3.54601C3.20487 3.35785 3.35785 3.20487 3.54601 3.10899C3.75992 3 4.03995 3 4.6 3H19.4C19.9601 3 20.2401 3 20.454 3.10899C20.6422 3.20487 20.7951 3.35785 20.891 3.54601C21 3.75992 21 4.03995 21 4.6V6.33726C21 6.58185 21 6.70414 20.9724 6.81923C20.948 6.92127 20.9072 7.01881 20.8524 7.10828C20.7906 7.2092 20.7043 7.2955 20.5316 7.46824L14.4684 13.5318C14.2957 13.7045 14.2094 13.7908 14.1476 13.8917C14.0928 13.9812 14.052 14.0787 14.0276 14.1808C14 14.2959 14 14.4182 14 14.6627V19.4C14 19.9601 14 20.2401 13.891 20.454C13.7951 20.6422 13.6422 20.7951 13.454 20.891C13.2401 21 12.9601 21 12.4 21H11.6C11.0399 21 10.7599 21 10.546 20.891C10.3578 20.7951 10.2049 20.6422 10.109 20.454C10 20.2401 10 19.9601 10 19.4V14.6627C10 14.4182 10 14.2959 9.97236 14.1808C9.94796 14.0787 9.9072 13.9812 9.85239 13.8917C9.79064 13.7908 9.70433 13.7045 9.53165 13.5318L3.46835 7.46824C3.29567 7.2955 3.20936 7.2092 3.14761 7.10828C3.0928 7.01881 3.05204 6.92127 3.02764 6.81923C3 6.70414 3 6.58185 3 6.33726V4.6Z"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </span>
@@ -282,12 +199,12 @@ function App() {
         onEdit={handleOpenEditUser}
         onDelete={handleOpenDeleteConfirm}
       />
-      {sortedUsers.length > 0 && (
+      {users.length > 0 && (
         <Pagination
           currentPage={safeCurrentPage}
           totalPages={totalPages}
           pageSize={pageSize}
-          totalRecords={sortedUsers.length}
+          totalRecords={users.length}
           startIndex={startIndex}
           endIndex={endIndex}
           onPageChange={setCurrentPage}
@@ -295,31 +212,31 @@ function App() {
         />
       )}
       <FilterPopup
-        isOpen={isFilterOpen}
+        isOpen={filterModal.isOpen}
         onClose={handleCloseFilter}
-        onApply={handleApplyFilters}
+        onApply={handleApplyFiltersApp}
         onReset={handleResetFilters}
         initialFilters={filters}
-        buttonRect={filterButtonRect}
+        buttonRect={filterModal.triggerRect}
       />
 
       <UserForm
         key={selectedUser ? selectedUser.id : "add-new"}
-        isOpen={isUserFormOpen}
+        isOpen={userFormModal.isOpen}
         onClose={handleCloseUserForm}
         onSubmit={handleUserFormSubmit}
         mode={userFormMode}
         initialData={selectedUser}
-        buttonRect={addUserBtnRect}
+        buttonRect={userFormModal.triggerRect}
       />
 
       <ConfirmDelete
         key={selectedUserForDelete ? selectedUserForDelete.id : "delete-new"}
-        isOpen={isConfirmDeleteOpen}
+        isOpen={confirmDeleteModal.isOpen}
         onClose={handleCloseDeleteConfirm}
         onConfirm={handleDeleteConfirm}
         user={selectedUserForDelete}
-        buttonRect={deleteBtnRect}
+        buttonRect={confirmDeleteModal.triggerRect}
       />
     </div>
   );

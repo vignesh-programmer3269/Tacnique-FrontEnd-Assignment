@@ -1,6 +1,9 @@
+import { useRef } from "react";
 import "./UserRow.css";
 
-function UserRow({ user }) {
+function UserRow({ user, onEdit }) {
+  const editBtnRef = useRef(null);
+
   return (
     <tr className="user-row">
       <td className="user-row__cell">{user.id}</td>
@@ -12,7 +15,13 @@ function UserRow({ user }) {
       <td className="user-row__cell">{user.department}</td>
       <td className="user-row__cell">
         <div className="user-row__actions" aria-label={`Actions for user ${user.id}`}>
-          <button className="user-row__button" type="button" disabled>
+          <button 
+            ref={editBtnRef}
+            className="user-row__button" 
+            type="button" 
+            data-userid={user.id}
+            onClick={() => onEdit?.(user, editBtnRef.current?.getBoundingClientRect())}
+          >
             Edit
           </button>
           <button className="user-row__button" type="button" disabled>

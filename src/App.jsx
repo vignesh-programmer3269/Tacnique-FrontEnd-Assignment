@@ -13,11 +13,11 @@ import {
   getPaginationInfo,
   applyAdvancedFilters,
 } from "./utils/helpers";
-import { createUser } from "./api/userService";
+import { createUser, updateUser } from "./api/userService";
 
 function App() {
-  const { users, loading, error, addUser } = useUsers();
-
+  const { users, loading, error, addUser, updateUserLocal } = useUsers();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(null);
@@ -35,6 +35,8 @@ function App() {
   const filterBtnRef = useRef(null);
 
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
+  const [userFormMode, setUserFormMode] = useState("add");
+  const [selectedUser, setSelectedUser] = useState(null);
   const [addUserBtnRect, setAddUserBtnRect] = useState(null);
 
   const handleOpenFilter = () => {
@@ -78,42 +80,69 @@ function App() {
 
   const handleOpenAddUser = (rect) => {
     setAddUserBtnRect(rect);
+    setUserFormMode("add");
+    setSelectedUser(null);
+    setIsUserFormOpen(true);
+  };
+
+  const handleOpenEditUser = (user, rect) => {
+    setAddUserBtnRect(rect);
+    setUserFormMode("edit");
+    setSelectedUser(user);
     setIsUserFormOpen(true);
   };
 
   const handleCloseUserForm = () => {
     setIsUserFormOpen(false);
     setTimeout(() => {
-      document.querySelector(".app-header__add-btn")?.focus();
+      if (userFormMode === "add") {
+        document.querySelector(".app-header__add-btn")?.focus();
+      } else if (userFormMode === "edit" && selectedUser) {
+        document.querySelector(`.user-row__button[data-userid="${selectedUser.id}"]`)?.focus();
+      }
     }, 10);
   };
 
-  const handleAddUserSubmit = async (formData) => {
-    await createUser({
-      name: `${formData.firstName} ${formData.lastName}`.trim(),
-      email: formData.email,
-    });
+  const handleUserFormSubmit = async (formData) => {
+    if (userFormMode === "add") {
+      await createUser({
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+      });
 
-    const maxId =
-      users.length > 0
-        ? Math.max(...users.map((u) => parseInt(u.id, 10) || 0))
-        : 0;
+      const maxId =
+        users.length > 0
+          ? Math.max(...users.map((u) => parseInt(u.id, 10) || 0))
+          : 0;
 
-    const newUser = {
-      id: maxId + 1,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      department: formData.department,
-    };
+      const newUser = {
+        id: maxId + 1,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        department: formData.department,
+      };
 
-    addUser(newUser);
-    setIsUserFormOpen(false);
-    setCurrentPage(1);
+      addUser(newUser);
+      setCurrentPage(1);
+    } else if (userFormMode === "edit" && selectedUser) {
+      await updateUser(selectedUser.id, {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+      });
 
-    setTimeout(() => {
-      document.querySelector(".app-header__add-btn")?.focus();
-    }, 10);
+      const updatedUser = {
+        ...selectedUser,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        department: formData.department,
+      };
+
+      updateUserLocal(updatedUser);
+    }
+
+    handleCloseUserForm();
   };
 
   const searchedUsers = useMemo(() => {
@@ -192,6 +221,7 @@ function App() {
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
+        onEdit={handleOpenEditUser}
       />
       {sortedUsers.length > 0 && (
         <Pagination
@@ -214,11 +244,13 @@ function App() {
         buttonRect={filterButtonRect}
       />
 
-      <UserForm
+      <UserForm 
+        key={selectedUser ? selectedUser.id : 'add-new'}
         isOpen={isUserFormOpen}
         onClose={handleCloseUserForm}
-        onSubmit={handleAddUserSubmit}
-        title="Add New User"
+        onSubmit={handleUserFormSubmit}
+        mode={userFormMode}
+        initialData={selectedUser}
         buttonRect={addUserBtnRect}
       />
     </div>

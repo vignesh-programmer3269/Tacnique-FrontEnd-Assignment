@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { DEFAULT_DEPARTMENTS } from "../../utils/constants";
 import "./UserForm.css";
 
-function UserForm({ isOpen, onClose, onSubmit, initialData, title, buttonRect }) {
+function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "add" }) {
   const [render, setRender] = useState(isOpen);
   const [formData, setFormData] = useState(
     initialData || {
@@ -12,6 +12,8 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, title, buttonRect })
       department: "",
     }
   );
+  
+  const title = mode === "edit" ? `Edit User ${initialData?.id || ""}`.trim() : "Add User";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   
@@ -245,7 +247,11 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, title, buttonRect })
               className="user-form__btn user-form__btn--submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Saving..." : "Save User"}
+              {isSubmitting
+                ? "Saving..."
+                : mode === "edit"
+                ? "Save Changes"
+                : "Create User"}
             </button>
           </div>
         </form>

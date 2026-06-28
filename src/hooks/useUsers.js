@@ -79,11 +79,18 @@ export function useUsers() {
     setUsers((prev) => [newUser, ...prev]);
   };
 
+  const updateUserLocal = (updatedUser) => {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+    );
+  };
+
   return {
     users,
     loading,
     error,
     refetchUsers,
     addUser,
+    updateUserLocal,
   };
 }

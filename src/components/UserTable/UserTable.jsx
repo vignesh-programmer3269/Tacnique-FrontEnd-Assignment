@@ -45,6 +45,7 @@ function UserTable({
               <th
                 className="user-table__heading user-table__heading--sortable"
                 scope="col"
+                style={{ width: "5%" }}
                 aria-sort={getSortAria("id")}
                 onClick={() => onSort("id")}
               >
@@ -53,6 +54,7 @@ function UserTable({
               <th
                 className="user-table__heading user-table__heading--sortable"
                 scope="col"
+                style={{ width: "15%" }}
                 aria-sort={getSortAria("firstName")}
                 onClick={() => onSort("firstName")}
               >
@@ -61,6 +63,7 @@ function UserTable({
               <th
                 className="user-table__heading user-table__heading--sortable"
                 scope="col"
+                style={{ width: "15%" }}
                 aria-sort={getSortAria("lastName")}
                 onClick={() => onSort("lastName")}
               >
@@ -69,6 +72,7 @@ function UserTable({
               <th
                 className="user-table__heading user-table__heading--sortable"
                 scope="col"
+                style={{ width: "20%" }}
                 aria-sort={getSortAria("email")}
                 onClick={() => onSort("email")}
               >
@@ -77,12 +81,17 @@ function UserTable({
               <th
                 className="user-table__heading user-table__heading--sortable"
                 scope="col"
+                style={{ width: "15%" }}
                 aria-sort={getSortAria("department")}
                 onClick={() => onSort("department")}
               >
                 Department {renderSortIndicator("department")}
               </th>
-              <th className="user-table__heading" scope="col">
+              <th
+                className="user-table__heading"
+                scope="col"
+                style={{ width: "20%", textAlign: "center" }}
+              >
                 Actions
               </th>
             </tr>

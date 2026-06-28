@@ -19,6 +19,7 @@
 
 .app-header__add-btn {
   padding: 0.625rem 1.25rem;
+  min-height: 44px;
   font-size: 0.875rem;
   font-weight: 600;
   color: #ffffff;
@@ -26,12 +27,21 @@
   border: 1px solid transparent;
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .app-header__add-btn:hover {
   background-color: #2563eb;
+}
+
+.app-header__add-btn:active {
+  transform: scale(0.98);
+}
+
+.app-header__add-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
 }
 
 .app-header__title {
@@ -41,7 +51,7 @@
   color: #111827;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .app-header {
     padding: 1rem;
   }
@@ -49,5 +59,23 @@
   .app-header__content {
     padding: 1.25rem;
     border-radius: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .app-header__title {
+    margin-bottom: 0.5rem;
+  }
+
+  .app-header__add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-header__content {
+    padding: 1.25rem 1.5rem;
   }
 }

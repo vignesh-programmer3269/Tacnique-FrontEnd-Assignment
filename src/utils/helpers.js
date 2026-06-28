@@ -1,4 +1,4 @@
-import { DEFAULT_DEPARTMENTS } from "./constants";
+import { DEFAULT_DEPARTMENTS } from "../constants/constants";
 
 function getDepartmentForUser(userId) {
   const idNumber = parseInt(userId, 10);
@@ -10,7 +10,9 @@ function getDepartmentForUser(userId) {
 }
 
 export function mapApiUser(user) {
-  const [firstName = "", ...lastNameParts] = (user.name || "").trim().split(/\s+/);
+  const [firstName = "", ...lastNameParts] = (user.name || "")
+    .trim()
+    .split(/\s+/);
 
   return {
     id: user.id,
@@ -51,8 +53,9 @@ export function paginateUsers(users, currentPage, pageSize) {
 export function getPaginationInfo(totalRecords, currentPage, pageSize) {
   const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  
-  const startIndex = totalRecords === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
+
+  const startIndex =
+    totalRecords === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
   const endIndex = Math.min(safeCurrentPage * pageSize, totalRecords);
 
   return {
@@ -69,13 +72,17 @@ export function applyAdvancedFilters(users, filters) {
   return users.filter((user) => {
     if (
       filters.firstName &&
-      !user.firstName.toLowerCase().includes(filters.firstName.trim().toLowerCase())
+      !user.firstName
+        .toLowerCase()
+        .includes(filters.firstName.trim().toLowerCase())
     ) {
       return false;
     }
     if (
       filters.lastName &&
-      !user.lastName.toLowerCase().includes(filters.lastName.trim().toLowerCase())
+      !user.lastName
+        .toLowerCase()
+        .includes(filters.lastName.trim().toLowerCase())
     ) {
       return false;
     }

@@ -180,11 +180,25 @@
 }
 
 .user-form__btn--submit {
-  background-color: #3b82f6;
+  background-color: #2563eb;
   color: #ffffff;
   border: 1px solid transparent;
 }
 
 .user-form__btn--submit:hover:not(:disabled) {
-  background-color: #2563eb;
+  background-color: #1d4ed8;
+}
+
+.user-form__error-text {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: #dc2626;
+}
+
+.user-form__input--error {
+  border-color: #dc2626 !important;
+}
+
+.user-form__input--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
 }

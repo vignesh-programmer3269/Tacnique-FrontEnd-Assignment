@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { DEFAULT_DEPARTMENTS } from "../../utils/constants";
+import { DEFAULT_DEPARTMENTS } from "../../constants/constants";
 import "./FilterPopup.css";
 
 function FilterPopup({

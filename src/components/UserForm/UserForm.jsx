@@ -1,8 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { DEFAULT_DEPARTMENTS } from "../../utils/constants";
+import { DEFAULT_DEPARTMENTS } from "../../constants/constants";
+import { validateUserForm } from "../../utils/validators";
 import "./UserForm.css";
 
-function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "add" }) {
+function UserForm({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData,
+  buttonRect,
+  mode = "add",
+}) {
   const [render, setRender] = useState(isOpen);
   const [formData, setFormData] = useState(
     initialData || {
@@ -10,13 +18,15 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
       lastName: "",
       email: "",
       department: "",
-    }
+    },
   );
-  
-  const title = mode === "edit" ? `Edit User ${initialData?.id || ""}`.trim() : "Add User";
+
+  const [formErrors, setFormErrors] = useState({});
+  const title =
+    mode === "edit" ? `Edit User ${initialData?.id || ""}`.trim() : "Add User";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  
+
   const popupRef = useRef(null);
   const firstInputRef = useRef(null);
 
@@ -29,14 +39,15 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
           lastName: "",
           email: "",
           department: "",
-        }
+        },
       );
       setErrorMsg("");
+      setFormErrors({});
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-    
+
     return () => {
       document.body.style.overflow = "";
     };
@@ -53,11 +64,11 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
 
       if (e.key === "Tab") {
         if (!popupRef.current) return;
-        
+
         const focusableElements = popupRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
-        
+
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -76,7 +87,7 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    
+
     const timeoutId = setTimeout(() => {
       if (firstInputRef.current) {
         firstInputRef.current.focus();
@@ -99,13 +110,34 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const newFormData = { ...formData, [name]: value };
+    setFormData(newFormData);
+
+    if (formErrors[name]) {
+      const { errors } = validateUserForm(newFormData);
+      if (!errors[name]) {
+        setFormErrors((prev) => {
+          const updated = { ...prev };
+          delete updated[name];
+          return updated;
+        });
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrorMsg("");
+
+    const { isValid, errors } = validateUserForm(formData);
+
+    if (!isValid) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors({});
+    setIsSubmitting(true);
 
     try {
       await onSubmit(formData);
@@ -114,6 +146,15 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const getInputClass = (fieldName) => {
+    let baseClass =
+      fieldName === "department" ? "user-form__select" : "user-form__input";
+    if (formErrors[fieldName]) {
+      return `${baseClass} user-form__input--error`;
+    }
+    return baseClass;
   };
 
   return (
@@ -134,8 +175,12 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
         ref={popupRef}
         onClick={(e) => e.stopPropagation()}
         style={{
-          "--origin-x": buttonRect ? `${buttonRect.left + buttonRect.width / 2}px` : "50vw",
-          "--origin-y": buttonRect ? `${buttonRect.top + buttonRect.height / 2}px` : "50vh",
+          "--origin-x": buttonRect
+            ? `${buttonRect.left + buttonRect.width / 2}px`
+            : "50vw",
+          "--origin-y": buttonRect
+            ? `${buttonRect.top + buttonRect.height / 2}px`
+            : "50vh",
         }}
       >
         <div className="user-form__header">
@@ -152,10 +197,10 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
           </button>
         </div>
 
-        <form className="user-form__form" onSubmit={handleSubmit}>
+        <form className="user-form__form" onSubmit={handleSubmit} noValidate>
           <div className="user-form__body">
             {errorMsg && <div className="user-form__error">{errorMsg}</div>}
-            
+
             <div className="user-form__grid">
               <div className="user-form__field">
                 <label htmlFor="user-firstName" className="user-form__label">
@@ -165,14 +210,22 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
                   id="user-firstName"
                   name="firstName"
                   type="text"
-                  className="user-form__input"
+                  className={getInputClass("firstName")}
                   value={formData.firstName}
                   onChange={handleChange}
                   placeholder="e.g. John"
-                  required
                   ref={firstInputRef}
                   disabled={isSubmitting}
+                  aria-invalid={!!formErrors.firstName}
+                  aria-describedby={
+                    formErrors.firstName ? "firstName-error" : undefined
+                  }
                 />
+                {formErrors.firstName && (
+                  <p id="firstName-error" className="user-form__error-text">
+                    {formErrors.firstName}
+                  </p>
+                )}
               </div>
 
               <div className="user-form__field">
@@ -183,13 +236,21 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
                   id="user-lastName"
                   name="lastName"
                   type="text"
-                  className="user-form__input"
+                  className={getInputClass("lastName")}
                   value={formData.lastName}
                   onChange={handleChange}
                   placeholder="e.g. Doe"
-                  required
                   disabled={isSubmitting}
+                  aria-invalid={!!formErrors.lastName}
+                  aria-describedby={
+                    formErrors.lastName ? "lastName-error" : undefined
+                  }
                 />
+                {formErrors.lastName && (
+                  <p id="lastName-error" className="user-form__error-text">
+                    {formErrors.lastName}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -201,13 +262,19 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
                 id="user-email"
                 name="email"
                 type="email"
-                className="user-form__input"
+                className={getInputClass("email")}
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="e.g. john@example.com"
-                required
                 disabled={isSubmitting}
+                aria-invalid={!!formErrors.email}
+                aria-describedby={formErrors.email ? "email-error" : undefined}
               />
+              {formErrors.email && (
+                <p id="email-error" className="user-form__error-text">
+                  {formErrors.email}
+                </p>
+              )}
             </div>
 
             <div className="user-form__field">
@@ -217,11 +284,14 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
               <select
                 id="user-department"
                 name="department"
-                className="user-form__select"
+                className={getInputClass("department")}
                 value={formData.department}
                 onChange={handleChange}
-                required
                 disabled={isSubmitting}
+                aria-invalid={!!formErrors.department}
+                aria-describedby={
+                  formErrors.department ? "department-error" : undefined
+                }
               >
                 <option value="">Select Department</option>
                 {DEFAULT_DEPARTMENTS.map((dept) => (
@@ -230,6 +300,11 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
                   </option>
                 ))}
               </select>
+              {formErrors.department && (
+                <p id="department-error" className="user-form__error-text">
+                  {formErrors.department}
+                </p>
+              )}
             </div>
           </div>
 
@@ -250,8 +325,8 @@ function UserForm({ isOpen, onClose, onSubmit, initialData, buttonRect, mode = "
               {isSubmitting
                 ? "Saving..."
                 : mode === "edit"
-                ? "Save Changes"
-                : "Create User"}
+                  ? "Save Changes"
+                  : "Create User"}
             </button>
           </div>
         </form>

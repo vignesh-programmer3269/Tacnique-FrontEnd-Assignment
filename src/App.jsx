@@ -7,6 +7,7 @@ import Pagination from "./components/Pagination/Pagination";
 import FilterPopup from "./components/FilterPopup/FilterPopup";
 import UserForm from "./components/UserForm/UserForm";
 import ConfirmDelete from "./components/ConfirmDelete/ConfirmDelete";
+import ErrorPopup from "./components/ErrorPopup/ErrorPopup";
 import { useUsers } from "./hooks/useUsers";
 import {
   sortUsers,
@@ -17,8 +18,14 @@ import {
 import { createUser, updateUser, deleteUser } from "./api/userService";
 
 function App() {
-  const { users, loading, error, addUser, updateUserLocal, deleteUserLocal } =
-    useUsers();
+  const {
+    users,
+    loading,
+    error: fetchError,
+    addUser,
+    updateUserLocal,
+    deleteUserLocal,
+  } = useUsers();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
@@ -44,6 +51,11 @@ function App() {
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [selectedUserForDelete, setSelectedUserForDelete] = useState(null);
   const [deleteBtnRect, setDeleteBtnRect] = useState(null);
+
+  const [mutationError, setMutationError] = useState({
+    message: "",
+    source: null,
+  });
 
   const handleOpenFilter = () => {
     if (filterBtnRef.current) {
@@ -112,45 +124,51 @@ function App() {
   };
 
   const handleUserFormSubmit = async (formData) => {
-    if (userFormMode === "add") {
-      await createUser({
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
+    try {
+      if (userFormMode === "add") {
+        await createUser({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+        });
+
+        const maxId =
+          users.length > 0
+            ? Math.max(...users.map((u) => parseInt(u.id, 10) || 0))
+            : 0;
+
+        const newUser = {
+          id: maxId + 1,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          department: formData.department,
+        };
+
+        addUser(newUser);
+        setCurrentPage(1);
+      } else if (userFormMode === "edit" && selectedUser) {
+        await updateUser(selectedUser.id, {
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+        });
+
+        const updatedUser = {
+          ...selectedUser,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          department: formData.department,
+        };
+
+        updateUserLocal(updatedUser);
+      }
+      handleCloseUserForm();
+    } catch (err) {
+      setMutationError({
+        message: err.message || "Failed to save user data. Please try again.",
+        source: "form",
       });
-
-      const maxId =
-        users.length > 0
-          ? Math.max(...users.map((u) => parseInt(u.id, 10) || 0))
-          : 0;
-
-      const newUser = {
-        id: maxId + 1,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        department: formData.department,
-      };
-
-      addUser(newUser);
-      setCurrentPage(1);
-    } else if (userFormMode === "edit" && selectedUser) {
-      await updateUser(selectedUser.id, {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
-      });
-
-      const updatedUser = {
-        ...selectedUser,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        department: formData.department,
-      };
-
-      updateUserLocal(updatedUser);
     }
-
-    handleCloseUserForm();
   };
 
   const handleOpenDeleteConfirm = (user, rect) => {
@@ -173,9 +191,16 @@ function App() {
   };
 
   const handleDeleteConfirm = async (user) => {
-    await deleteUser(user.id);
-    deleteUserLocal(user.id);
-    setIsConfirmDeleteOpen(false);
+    try {
+      await deleteUser(user.id);
+      deleteUserLocal(user.id);
+      setIsConfirmDeleteOpen(false);
+    } catch (err) {
+      setMutationError({
+        message: err.message || "Failed to delete user. Please try again.",
+        source: "delete",
+      });
+    }
   };
 
   const searchedUsers = useMemo(() => {
@@ -300,14 +325,21 @@ function App() {
   );
 
   if (loading) {
-    content = <p className="app-placeholder__text">Loading users...</p>;
+    content = (
+      <div className="app-placeholder__text app-placeholder__text--column">
+        <div className="app-spinner"></div>
+        <span>Fetching data...</span>
+      </div>
+    );
   }
 
-  if (error) {
+  // Fallback if data fetch failed
+  if (fetchError && users.length === 0) {
     content = (
-      <p className="app-placeholder__text app-placeholder__text--error">
-        {error}
-      </p>
+      <div className="app-placeholder__text app-placeholder__text--error">
+        {fetchError ||
+          "Unable to fetch active users from the database. Please verify your connection status and try again."}
+      </div>
     );
   }
 
@@ -319,6 +351,20 @@ function App() {
           <div className="app-placeholder">{content}</div>
         </div>
       </main>
+
+      <ErrorPopup
+        isOpen={!!mutationError.message}
+        message={mutationError.message}
+        onRetry={() => setMutationError({ message: "", source: null })}
+        onOk={() => {
+          if (mutationError.source === "form") {
+            handleCloseUserForm();
+          } else if (mutationError.source === "delete") {
+            handleCloseDeleteConfirm();
+          }
+          setMutationError({ message: "", source: null });
+        }}
+      />
     </div>
   );
 }

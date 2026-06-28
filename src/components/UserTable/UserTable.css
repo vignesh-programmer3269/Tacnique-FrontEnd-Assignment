@@ -32,6 +32,33 @@
   white-space: nowrap;
 }
 
+.user-table__heading--sortable {
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.user-table__heading--sortable:hover {
+  background-color: #f1f5f9;
+  color: #1f2937;
+}
+
+.user-table__sort-indicator {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  vertical-align: middle;
+  transition: opacity 0.3s ease;
+}
+
+.user-table__sort-indicator--hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .user-table__empty-state {
   display: flex;
   align-items: center;

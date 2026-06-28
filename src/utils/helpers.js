@@ -24,3 +24,21 @@ export function mapApiUser(user) {
 export function mapApiUsers(users) {
   return users.map((user) => mapApiUser(user));
 }
+
+export function sortUsers(users, sortField, sortDirection) {
+  if (!sortField || !sortDirection) {
+    return users;
+  }
+
+  return [...users].sort((a, b) => {
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    if (typeof aValue === "string") aValue = aValue.toLowerCase();
+    if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+}

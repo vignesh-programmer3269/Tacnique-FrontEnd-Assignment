@@ -4,10 +4,22 @@ import Header from "./components/Header/Header";
 import SearchBar from "./components/SearchBar/SearchBar";
 import UserTable from "./components/UserTable/UserTable";
 import { useUsers } from "./hooks/useUsers";
+import { sortUsers } from "./utils/helpers";
 
 function App() {
   const { users, loading, error } = useUsers();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState(null);
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;
@@ -22,10 +34,19 @@ function App() {
     });
   }, [users, searchQuery]);
 
+  const sortedUsers = useMemo(() => {
+    return sortUsers(filteredUsers, sortField, sortDirection);
+  }, [filteredUsers, sortField, sortDirection]);
+
   let content = (
     <div className="app-dashboard">
       <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-      <UserTable users={filteredUsers} />
+      <UserTable 
+        users={sortedUsers} 
+        sortField={sortField} 
+        sortDirection={sortDirection} 
+        onSort={handleSort} 
+      />
     </div>
   );
 

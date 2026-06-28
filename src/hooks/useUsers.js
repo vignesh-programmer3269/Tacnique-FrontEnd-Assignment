@@ -51,7 +51,7 @@ export function useUsers() {
         if (!isMounted) {
           return;
         }
-        
+
         const multipliedApiUsers = multiplyUsers(apiUsers);
         setUsers(mapApiUsers(multipliedApiUsers));
       } catch (fetchError) {
@@ -75,10 +75,15 @@ export function useUsers() {
     };
   }, []);
 
+  const addUser = (newUser) => {
+    setUsers((prev) => [newUser, ...prev]);
+  };
+
   return {
     users,
     loading,
     error,
     refetchUsers,
+    addUser,
   };
 }

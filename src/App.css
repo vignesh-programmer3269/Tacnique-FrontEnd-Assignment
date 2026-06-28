@@ -19,6 +19,12 @@
   justify-content: stretch;
 }
 
+.app-dashboard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .app-placeholder__text {
   width: 100%;
   min-height: calc(100vh - 11rem);

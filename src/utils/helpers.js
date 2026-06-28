@@ -1,3 +1,14 @@
+import { DEFAULT_DEPARTMENTS } from "./constants";
+
+function getDepartmentForUser(userId) {
+  const idNumber = parseInt(userId, 10);
+  if (isNaN(idNumber)) {
+    return DEFAULT_DEPARTMENTS[0];
+  }
+  const index = Math.max(0, idNumber - 1) % DEFAULT_DEPARTMENTS.length;
+  return DEFAULT_DEPARTMENTS[index];
+}
+
 export function mapApiUser(user) {
   const [firstName = "", ...lastNameParts] = (user.name || "").trim().split(/\s+/);
 
@@ -6,7 +17,7 @@ export function mapApiUser(user) {
     firstName,
     lastName: lastNameParts.join(" "),
     email: user.email,
-    department: "IT",
+    department: getDepartmentForUser(user.id),
   };
 }
 

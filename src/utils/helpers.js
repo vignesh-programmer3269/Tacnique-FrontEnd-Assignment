@@ -62,3 +62,32 @@ export function getPaginationInfo(totalRecords, currentPage, pageSize) {
     endIndex,
   };
 }
+
+export function applyAdvancedFilters(users, filters) {
+  if (!filters) return users;
+
+  return users.filter((user) => {
+    if (
+      filters.firstName &&
+      !user.firstName.toLowerCase().includes(filters.firstName.trim().toLowerCase())
+    ) {
+      return false;
+    }
+    if (
+      filters.lastName &&
+      !user.lastName.toLowerCase().includes(filters.lastName.trim().toLowerCase())
+    ) {
+      return false;
+    }
+    if (
+      filters.email &&
+      !user.email.toLowerCase().includes(filters.email.trim().toLowerCase())
+    ) {
+      return false;
+    }
+    if (filters.department && user.department !== filters.department) {
+      return false;
+    }
+    return true;
+  });
+}

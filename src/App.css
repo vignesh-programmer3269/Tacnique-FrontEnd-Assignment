@@ -25,6 +25,43 @@
   flex-direction: column;
 }
 
+.app-dashboard__controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.app-dashboard__filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.app-dashboard__filter-btn:hover {
+  background-color: #f9fafb;
+  color: #111827;
+  border-color: #9ca3af;
+}
+
+.app-dashboard__filter-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .app-placeholder__text {
   width: 100%;
   min-height: calc(100vh - 11rem);
@@ -50,6 +87,13 @@
   .app-main {
     padding: 0 1rem 1.5rem;
   }
+
+  .app-dashboard__controls {
+    flex-direction: column;
+    margin-bottom: 1rem;
+    align-items: stretch;
+  }
+
 
   .app-placeholder {
     min-height: calc(100vh - 9.5rem);

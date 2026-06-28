@@ -1,11 +1,12 @@
 import "./App.css";
 import Header from "./components/Header";
+import UserTable from "./components/UserTable/UserTable";
 import { useUsers } from "./hooks/useUsers";
 
 function App() {
   const { users, loading, error } = useUsers();
 
-  let content = <p className="app-placeholder__text">Total Users: {users.length}</p>;
+  let content = <UserTable users={users} />;
 
   if (loading) {
     content = <p className="app-placeholder__text">Loading users...</p>;

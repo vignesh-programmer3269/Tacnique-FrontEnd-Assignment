@@ -42,3 +42,23 @@ export function sortUsers(users, sortField, sortDirection) {
     return 0;
   });
 }
+
+export function paginateUsers(users, currentPage, pageSize) {
+  const startIndex = (currentPage - 1) * pageSize;
+  return users.slice(startIndex, startIndex + pageSize);
+}
+
+export function getPaginationInfo(totalRecords, currentPage, pageSize) {
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  
+  const startIndex = totalRecords === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1;
+  const endIndex = Math.min(safeCurrentPage * pageSize, totalRecords);
+
+  return {
+    totalPages,
+    safeCurrentPage,
+    startIndex,
+    endIndex,
+  };
+}

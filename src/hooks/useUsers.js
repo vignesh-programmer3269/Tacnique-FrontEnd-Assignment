@@ -2,6 +2,19 @@ import { useEffect, useState } from "react";
 import { getUsers } from "../api/userService";
 import { mapApiUsers } from "../utils/helpers";
 
+function multiplyUsers(apiUsers, factor = 12) {
+  const multiplied = [];
+  for (let i = 0; i < factor; i++) {
+    apiUsers.forEach((user) => {
+      multiplied.push({
+        ...user,
+        id: user.id + i * apiUsers.length,
+      });
+    });
+  }
+  return multiplied;
+}
+
 export function useUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +26,8 @@ export function useUsers() {
 
     try {
       const apiUsers = await getUsers();
-      const mappedUsers = mapApiUsers(apiUsers);
+      const multipliedApiUsers = multiplyUsers(apiUsers);
+      const mappedUsers = mapApiUsers(multipliedApiUsers);
 
       setUsers(mappedUsers);
     } catch (fetchError) {
@@ -37,8 +51,9 @@ export function useUsers() {
         if (!isMounted) {
           return;
         }
-
-        setUsers(mapApiUsers(apiUsers));
+        
+        const multipliedApiUsers = multiplyUsers(apiUsers);
+        setUsers(mapApiUsers(multipliedApiUsers));
       } catch (fetchError) {
         if (!isMounted) {
           return;

@@ -1,16 +1,19 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import "./App.css";
 import Header from "./components/Header/Header";
 import SearchBar from "./components/SearchBar/SearchBar";
 import UserTable from "./components/UserTable/UserTable";
+import Pagination from "./components/Pagination/Pagination";
 import { useUsers } from "./hooks/useUsers";
-import { sortUsers } from "./utils/helpers";
+import { sortUsers, paginateUsers, getPaginationInfo } from "./utils/helpers";
 
 function App() {
   const { users, loading, error } = useUsers();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -19,6 +22,11 @@ function App() {
       setSortField(field);
       setSortDirection("asc");
     }
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
   };
 
   const filteredUsers = useMemo(() => {
@@ -38,15 +46,48 @@ function App() {
     return sortUsers(filteredUsers, sortField, sortDirection);
   }, [filteredUsers, sortField, sortDirection]);
 
+  useEffect(() => {
+    if (sortedUsers.length === 0) {
+      setCurrentPage(1);
+    } else {
+      const totalPages = Math.ceil(sortedUsers.length / pageSize);
+      if (currentPage > totalPages) {
+        setCurrentPage(totalPages);
+      }
+    }
+  }, [sortedUsers.length, pageSize, currentPage]);
+
+  const { totalPages, safeCurrentPage, startIndex, endIndex } = getPaginationInfo(
+    sortedUsers.length,
+    currentPage,
+    pageSize
+  );
+
+  const paginatedUsers = useMemo(() => {
+    return paginateUsers(sortedUsers, safeCurrentPage, pageSize);
+  }, [sortedUsers, safeCurrentPage, pageSize]);
+
   let content = (
     <div className="app-dashboard">
       <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       <UserTable 
-        users={sortedUsers} 
+        users={paginatedUsers} 
         sortField={sortField} 
         sortDirection={sortDirection} 
         onSort={handleSort} 
       />
+      {sortedUsers.length > 0 && (
+        <Pagination 
+          currentPage={safeCurrentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalRecords={sortedUsers.length}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
     </div>
   );
 
